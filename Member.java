@@ -4,28 +4,28 @@ import java.util.LinkedList;
 
 public class Member {
     private String name;
-    private String memberId;
+    private String id;
     private LinkedList<String> transactionHistory;
 
-    public Member(String name, String memberId) {
+    public Member(String name, String id) {
         this.name = name;
-        this.memberId = memberId;
+        this.id = id;
         this.transactionHistory = new LinkedList<>();
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getMemberId() {
-        return memberId;
-    }
-
     public void addTransaction(String transaction) {
         transactionHistory.add(transaction);
     }
 
-    public void printTransactionHistory() {
+    public void showTransactionHistory() {
         for (String transaction : transactionHistory) {
             System.out.println(transaction);
         }
