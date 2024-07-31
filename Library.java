@@ -1,7 +1,6 @@
 package librarymanagement;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Scanner;
@@ -11,26 +10,30 @@ public class Library {
     private static final int MAX_CAPACITY = 1000; // Example capacity
     private Stack<Book> bookStack;
     private Queue<Book> bookQueue;
-    private HashMap<String, Member> members;
+    private Stack<Member> memberStack;
     private Scanner scanner;
 
     public Library() {
         bookStack = new Stack<>();
         bookQueue = new LinkedList<>();
-        members = new HashMap<>();
+        memberStack = new Stack<>();
         scanner = new Scanner(System.in);
     }
 
-    public boolean isEmpty() {
+    public boolean isBookStackEmpty() {
         return bookStack.isEmpty();
     }
 
-    public boolean isFull() {
+    public boolean isBookStackFull() {
         return bookStack.size() >= MAX_CAPACITY;
     }
 
+    public boolean isMemberStackEmpty() {
+        return memberStack.isEmpty();
+    }
+
     public void pushBook() {
-        if (isFull()) {
+        if (isBookStackFull()) {
             System.out.println("Library is full. Cannot add more books.");
             return;
         }
@@ -51,7 +54,7 @@ public class Library {
     }
 
     public void popBook() {
-        if (isEmpty()) {
+        if (isBookStackEmpty()) {
             System.out.println("Library is empty. Cannot remove any books.");
             return;
         }
@@ -61,19 +64,33 @@ public class Library {
         System.out.println("Book removed successfully: " + book.getTitle());
     }
 
-    public void enqueueMember() {
+    public void pushMember() {
         System.out.println("Enter member name:");
         String name = scanner.nextLine();
         System.out.println("Enter member ID:");
         String id = scanner.nextLine();
 
         Member member = new Member(name, id);
-        members.put(id, member);
+        memberStack.push(member);
         System.out.println("Member added successfully.");
     }
 
+    public Member popMember() {
+        if (isMemberStackEmpty()) {
+            System.out.println("No members to remove.");
+            return null;
+        }
+
+        return memberStack.pop();
+    }
+
     public Member getMember(String id) {
-        return members.get(id);
+        for (Member member : memberStack) {
+            if (member.getId().equals(id)) {
+                return member;
+            }
+        }
+        return null;
     }
 
     public void borrowBook() {
@@ -126,7 +143,7 @@ public class Library {
     }
 
     public void listAllBooks() {
-        if (isEmpty()) {
+        if (isBookStackEmpty()) {
             System.out.println("No books available.");
             return;
         }
@@ -138,13 +155,13 @@ public class Library {
     }
 
     public void listAllMembers() {
-        if (members.isEmpty()) {
+        if (isMemberStackEmpty()) {
             System.out.println("No members available.");
             return;
         }
 
         System.out.println("\nList of all members:");
-        for (Member member : members.values()) {
+        for (Member member : memberStack) {
             System.out.println("ID: " + member.getId() + ", Name: " + member.getName());
         }
     }
@@ -194,19 +211,20 @@ public class Library {
 
     public void start() {
         while (true) {
-            System.out.println("\nLibrary Management System");
+            System.out.println("\nLibrary Management System:");
             System.out.println("1. Add Book (Push)");
             System.out.println("2. Remove Book (Pop)");
-            System.out.println("3. Add Member (Enqueue)");
-            System.out.println("4. Borrow Book");
-            System.out.println("5. Return Book");
-            System.out.println("6. View Transaction History");
-            System.out.println("7. List All Books");
-            System.out.println("8. List All Members");
-            System.out.println("9. Search Books by Author");
-            System.out.println("10. Search Books by Subject");
-            System.out.println("11. Exit");
-            System.out.print("Enter your choice: ");
+            System.out.println("3. Add Member (Push)");
+            System.out.println("4. Remove Member (Pop)");
+            System.out.println("5. Borrow Book");
+            System.out.println("6. Return Book");
+            System.out.println("7. Show Transaction History");
+            System.out.println("8. List All Books");
+            System.out.println("9. List All Members");
+            System.out.println("10. Search Books by Author");
+            System.out.println("11. Search Books by Subject");
+            System.out.println("12. Exit");
+            System.out.print("Choose an option: ");
 
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume newline
@@ -219,36 +237,37 @@ public class Library {
                     popBook();
                     break;
                 case 3:
-                    enqueueMember();
+                    pushMember();
                     break;
                 case 4:
-                    borrowBook();
+                    popMember();
                     break;
                 case 5:
-                    returnBook();
+                    borrowBook();
                     break;
                 case 6:
-                    showTransactionHistory();
+                    returnBook();
                     break;
                 case 7:
-                    listAllBooks();
+                    showTransactionHistory();
                     break;
                 case 8:
-                    listAllMembers();
+                    listAllBooks();
                     break;
                 case 9:
-                    searchBooksByAuthor();
+                    listAllMembers();
                     break;
                 case 10:
-                    searchBooksBySubject();
+                    searchBooksByAuthor();
                     break;
                 case 11:
-                    System.out.println("Exiting system...");
-                    scanner.close();
-                    System.exit(0);
+                    searchBooksBySubject();
                     break;
+                case 12:
+                    System.out.println("Exiting system.");
+                    return;
                 default:
-                    System.out.println("Invalid choice. Please try again.");
+                    System.out.println("Invalid option. Please try again.");
             }
         }
     }
