@@ -1,106 +1,178 @@
 package librarymanagement;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Scanner;
-import java.util.Stack;
 
-public class Library {
-    private static final int MAX_CAPACITY = 1000; // Example capacity
-    private Stack<Book> bookStack;
-    private Queue<Book> bookQueue;
-    private Stack<Member> memberStack;
+public class LibraryTool {
+    private static final int MAX_CAPACITY = 1000;
+    private Book[] bookStack;
+    private Book[] bookQueue;
+    private Member[] memberStack;
+    private int bookStackTop;
+    private int bookQueueFront;
+    private int bookQueueRear;
+    private int bookQueueSize;
+    private int memberStackTop;
     private Scanner scanner;
 
-    public Library() {
-        bookStack = new Stack<>();
-        bookQueue = new LinkedList<>();
-        memberStack = new Stack<>();
+    public LibraryTool() {
+        bookStack = new Book[MAX_CAPACITY];
+        bookQueue = new Book[MAX_CAPACITY];
+        memberStack = new Member[MAX_CAPACITY];
+        bookStackTop = -1;
+        bookQueueFront = 0;
+        bookQueueRear = -1;
+        bookQueueSize = 0;
+        memberStackTop = -1;
         scanner = new Scanner(System.in);
     }
 
+    // Stack Methods
+    public void pushBook(Book book) {
+        if (isBookStackFull()) {
+            System.out.println("Book stack is full.");
+            return;
+        }
+        bookStack[++bookStackTop] = book;
+    }
+
+    public Book popBook() {
+        if (isBookStackEmpty()) {
+            System.out.println("Book stack is empty.");
+            return null;
+        }
+        return bookStack[bookStackTop--];
+    }
+
+    public Book peekBook() {
+        if (isBookStackEmpty()) {
+            System.out.println("Book stack is empty.");
+            return null;
+        }
+        return bookStack[bookStackTop];
+    }
+
     public boolean isBookStackEmpty() {
-        return bookStack.isEmpty();
+        return bookStackTop == -1;
     }
 
     public boolean isBookStackFull() {
-        return bookStack.size() >= MAX_CAPACITY;
+        return bookStackTop == MAX_CAPACITY - 1;
     }
 
-    public boolean isMemberStackEmpty() {
-        return memberStack.isEmpty();
-    }
-
-    public void pushBook() {
-        if (isBookStackFull()) {
-            System.out.println("Library is full. Cannot add more books.");
+    // Queue Methods
+    public void enqueueBook(Book book) {
+        if (isBookQueueFull()) {
+            System.out.println("Book queue is full.");
             return;
         }
-
-        System.out.println("Enter book ID:");
-        String id = scanner.nextLine();
-        System.out.println("Enter book title:");
-        String title = scanner.nextLine();
-        System.out.println("Enter book author:");
-        String author = scanner.nextLine();
-        System.out.println("Enter book subject:");
-        String subject = scanner.nextLine();
-
-        Book book = new Book(id, title, author, subject);
-        bookStack.push(book);
-        bookQueue.offer(book);
-        System.out.println("Book added successfully.");
+        bookQueueRear = (bookQueueRear + 1) % MAX_CAPACITY;
+        bookQueue[bookQueueRear] = book;
+        bookQueueSize++;
     }
 
-    public void popBook() {
-        if (isBookStackEmpty()) {
-            System.out.println("Library is empty. Cannot remove any books.");
+    public Book dequeueBook() {
+        if (isBookQueueEmpty()) {
+            System.out.println("Book queue is empty.");
+            return null;
+        }
+        Book book = bookQueue[bookQueueFront];
+        bookQueueFront = (bookQueueFront + 1) % MAX_CAPACITY;
+        bookQueueSize--;
+        return book;
+    }
+
+    public Book peekBookQueue() {
+        if (isBookQueueEmpty()) {
+            System.out.println("Book queue is empty.");
+            return null;
+        }
+        return bookQueue[bookQueueFront];
+    }
+
+    public boolean isBookQueueEmpty() {
+        return bookQueueSize == 0;
+    }
+
+    public boolean isBookQueueFull() {
+        return bookQueueSize == MAX_CAPACITY;
+    }
+
+    public void printBookQueue() {
+        if (isBookQueueEmpty()) {
+            System.out.println("Book queue is empty.");
             return;
         }
-
-        Book book = bookStack.pop();
-        bookQueue.remove(book);
-        System.out.println("Book removed successfully: " + book.getTitle());
+        int current = bookQueueFront;
+        for (int i = 0; i < bookQueueSize; i++) {
+            System.out.println(bookQueue[current].getTitle());
+            current = (current + 1) % MAX_CAPACITY;
+        }
     }
 
-    public void pushMember() {
-        System.out.println("Enter member name:");
-        String name = scanner.nextLine();
-        System.out.println("Enter member ID:");
-        String id = scanner.nextLine();
-
-        Member member = new Member(name, id);
-        memberStack.push(member);
-        System.out.println("Member added successfully.");
+    // Member Stack Methods
+    public void pushMember(Member member) {
+        if (isMemberStackFull()) {
+            System.out.println("Member stack is full.");
+            return;
+        }
+        memberStack[++memberStackTop] = member;
     }
 
     public Member popMember() {
         if (isMemberStackEmpty()) {
-            System.out.println("No members to remove.");
+            System.out.println("Member stack is empty.");
             return null;
         }
-
-        return memberStack.pop();
+        return memberStack[memberStackTop--];
     }
 
-    public Member getMember(String id) {
-        for (Member member : memberStack) {
-            if (member.getId().equals(id)) {
-                return member;
-            }
+    public Member peekMember() {
+        if (isMemberStackEmpty()) {
+            System.out.println("Member stack is empty.");
+            return null;
         }
-        return null;
+        return memberStack[memberStackTop];
     }
 
-    public void borrowBook() {
-        System.out.println("Enter member ID:");
-        String memberId = scanner.nextLine();
-        System.out.println("Enter book ID to borrow:");
-        String bookId = scanner.nextLine();
+    public boolean isMemberStackEmpty() {
+        return memberStackTop == -1;
+    }
 
-        Member member = getMember(memberId);
-        Book book = searchBookById(bookId);
+    public boolean isMemberStackFull() {
+        return memberStackTop == MAX_CAPACITY - 1;
+    }
+
+    // Library Operations
+    public void addBook(String id, String title, String author, String subject) {
+        Book book = new Book(id, title, author, subject);
+        pushBook(book);
+        enqueueBook(book);
+        System.out.println("Book added successfully.");
+    }
+
+    public void removeBook() {
+        Book book = popBook();
+        if (book != null) {
+            System.out.println("Book removed successfully: " + book.getTitle());
+        }
+    }
+
+    public void addMember(String name, String id) {
+        Member member = new Member(name, id);
+        pushMember(member);
+        System.out.println("Member added successfully.");
+    }
+
+    public void removeMember() {
+        Member member = popMember();
+        if (member != null) {
+            System.out.println("Member removed successfully: " + member.getName());
+        }
+    }
+
+    public void borrowBook(String memberId, String bookId) {
+        Member member = getMemberById(memberId);
+        Book book = getBookById(bookId);
 
         if (member != null && book != null && !book.isBorrowed()) {
             book.borrowBook();
@@ -111,14 +183,9 @@ public class Library {
         }
     }
 
-    public void returnBook() {
-        System.out.println("Enter member ID:");
-        String memberId = scanner.nextLine();
-        System.out.println("Enter book ID to return:");
-        String bookId = scanner.nextLine();
-
-        Member member = getMember(memberId);
-        Book book = searchBookById(bookId);
+    public void returnBook(String memberId, String bookId) {
+        Member member = getMemberById(memberId);
+        Book book = getBookById(bookId);
 
         if (member != null && book != null && book.isBorrowed()) {
             book.returnBook();
@@ -129,10 +196,8 @@ public class Library {
         }
     }
 
-    public void showTransactionHistory() {
-        System.out.println("Enter member ID to view transaction history:");
-        String memberId = scanner.nextLine();
-        Member member = getMember(memberId);
+    public void showTransactionHistory(String memberId) {
+        Member member = getMemberById(memberId);
 
         if (member != null) {
             System.out.println("Transaction history for member " + member.getName() + ":");
@@ -145,132 +210,70 @@ public class Library {
     public void listAllBooks() {
         if (isBookStackEmpty()) {
             System.out.println("No books available.");
-            return;
-        }
-
-        System.out.println("\nList of all books:");
-        for (Book book : bookStack) {
-            System.out.println("ID: " + book.getId() + ", Title: " + book.getTitle() + ", Author: " + book.getAuthor() + ", Subject: " + book.getSubject() + ", Borrowed: " + (book.isBorrowed() ? "Yes" : "No"));
+        } else {
+            System.out.println("List of all books:");
+            for (int i = 0; i <= bookStackTop; i++) {
+                Book book = bookStack[i];
+                System.out.println("ID: " + book.getId() + ", Title: " + book.getTitle() + ", Author: " + book.getAuthor() + ", Subject: " + book.getSubject() + ", Borrowed: " + (book.isBorrowed() ? "Yes" : "No"));
+            }
         }
     }
 
     public void listAllMembers() {
         if (isMemberStackEmpty()) {
             System.out.println("No members available.");
-            return;
-        }
-
-        System.out.println("\nList of all members:");
-        for (Member member : memberStack) {
-            System.out.println("ID: " + member.getId() + ", Name: " + member.getName());
+        } else {
+            System.out.println("List of all members:");
+            for (int i = 0; i <= memberStackTop; i++) {
+                Member member = memberStack[i];
+                System.out.println("ID: " + member.getId() + ", Name: " + member.getName());
+            }
         }
     }
 
-    public Book searchBookById(String id) {
-        for (Book book : bookStack) {
-            if (book.getId().equals(id)) {
-                return book;
+    public void searchBooksByAuthor(String author) {
+        boolean found = false;
+
+        for (int i = 0; i <= bookQueueRear; i++) {
+            if (bookQueue[i].getAuthor().equalsIgnoreCase(author)) {
+                System.out.println("ID: " + bookQueue[i].getId() + ", Title: " + bookQueue[i].getTitle() + ", Subject: " + bookQueue[i].getSubject() + ", Borrowed: " + (bookQueue[i].isBorrowed() ? "Yes" : "No"));
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println("No books found by author " + author);
+        }
+    }
+
+    public void searchBooksBySubject(String subject) {
+        boolean found = false;
+
+        for (int i = 0; i <= bookQueueRear; i++) {
+            if (bookQueue[i].getSubject().equalsIgnoreCase(subject)) {
+                System.out.println("ID: " + bookQueue[i].getId() + ", Title: " + bookQueue[i].getTitle() + ", Author: " + bookQueue[i].getAuthor() + ", Borrowed: " + (bookQueue[i].isBorrowed() ? "Yes" : "No"));
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println("No books found with subject " + subject);
+        }
+    }
+
+    private Member getMemberById(String id) {
+        for (int i = 0; i <= memberStackTop; i++) {
+            if (memberStack[i].getId().equals(id)) {
+                return memberStack[i];
             }
         }
         return null;
     }
 
-    public void searchBooksByAuthor() {
-        System.out.println("Enter author name to search books:");
-        String author = scanner.nextLine();
-        boolean found = false;
-
-        for (Book book : bookStack) {
-            if (book.getAuthor().equalsIgnoreCase(author)) {
-                System.out.println("ID: " + book.getId() + ", Title: " + book.getTitle() + ", Author: " + book.getAuthor() + ", Subject: " + book.getSubject() + ", Borrowed: " + (book.isBorrowed() ? "Yes" : "No"));
-                found = true;
+    private Book getBookById(String id) {
+        for (int i = 0; i <= bookQueueRear; i++) {
+            if (bookQueue[i].getId().equals(id)) {
+                return bookQueue[i];
             }
         }
-
-        if (!found) {
-            System.out.println("No books found for author: " + author);
-        }
+        return null;
     }
-
-    public void searchBooksBySubject() {
-        System.out.println("Enter subject to search books:");
-        String subject = scanner.nextLine();
-        boolean found = false;
-
-        for (Book book : bookQueue) {
-            if (book.getSubject().equalsIgnoreCase(subject)) {
-                System.out.println("ID: " + book.getId() + ", Title: " + book.getTitle() + ", Author: " + book.getAuthor() + ", Subject: " + book.getSubject() + ", Borrowed: " + (book.isBorrowed() ? "Yes" : "No"));
-                found = true;
-            }
-        }
-
-        if (!found) {
-            System.out.println("No books found for subject: " + subject);
-        }
-    }
-
-    public void start() {
-        while (true) {
-            System.out.println("\nLibrary Management System:");
-            System.out.println("1. Add Book (Push)");
-            System.out.println("2. Remove Book (Pop)");
-            System.out.println("3. Add Member (Push)");
-            System.out.println("4. Remove Member (Pop)");
-            System.out.println("5. Borrow Book");
-            System.out.println("6. Return Book");
-            System.out.println("7. Show Transaction History");
-            System.out.println("8. List All Books");
-            System.out.println("9. List All Members");
-            System.out.println("10. Search Books by Author");
-            System.out.println("11. Search Books by Subject");
-            System.out.println("12. Exit");
-            System.out.print("Choose an option: ");
-
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
-
-            switch (choice) {
-                case 1:
-                    pushBook();
-                    break;
-                case 2:
-                    popBook();
-                    break;
-                case 3:
-                    pushMember();
-                    break;
-                case 4:
-                    popMember();
-                    break;
-                case 5:
-                    borrowBook();
-                    break;
-                case 6:
-                    returnBook();
-                    break;
-                case 7:
-                    showTransactionHistory();
-                    break;
-                case 8:
-                    listAllBooks();
-                    break;
-                case 9:
-                    listAllMembers();
-                    break;
-                case 10:
-                    searchBooksByAuthor();
-                    break;
-                case 11:
-                    searchBooksBySubject();
-                    break;
-                case 12:
-                    System.out.println("Exiting system.");
-                    return;
-                default:
-                    System.out.println("Invalid option. Please try again.");
-            }
-        }
-    }
-
-
 }
